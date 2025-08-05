@@ -31,10 +31,10 @@ This clean division supports a valid comparison. However, findings are based on 
 ## Methods & Key Findings
 
 Analysis Scripts:
-- `POLI274_Final_Project.Rmd`
+- [POLI274_Final_Project.Rmd](./POLI274_Final_Project.Rmd)
 
 Written Report:
-- `POLI274_Final_Project_Allan_Lam.docx`
+- [POLI274_Final_Project_Allan_Lam.docx](./POLI274_Final_Project_Allan_Lam.docx)
 
 ### 1. Discriminatory Word Analysis
 
