@@ -32,8 +32,9 @@ This clean division supports a valid comparison. However, findings are based on 
 
 Analysis Scripts:
 - `POLI274_Final_Project.Rmd`
+
 Written Report:
-- `POLI274_Final_Project_Allan_Lam`
+- `POLI274_Final_Project_Allan_Lam.docx`
 
 ### 1. Discriminatory Word Analysis
 
