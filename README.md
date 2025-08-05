@@ -34,7 +34,7 @@ Analysis Scripts:
 - [POLI274_Final_Project.Rmd](./POLI274_Final_Project.Rmd)
 
 Written Report:
-- [POLI274_Final_Project_Allan_Lam.docx](./POLI274_Final_Project_Allan_Lam.docx)
+- [POLI274_Final_Project_Allan_Lam.pdf](./POLI274_Final_Project_Allan_Lam.pdf)
 
 ### 1. Discriminatory Word Analysis
 
