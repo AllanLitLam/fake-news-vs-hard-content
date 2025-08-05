@@ -1,0 +1,450 @@
+---
+title: "Allan Lam"
+subtitle: "Final Project"
+date: "`r Sys.time()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+biblio-style: apalike
+urlcolor: blue
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r}
+library(tidyverse)
+library(tokenizers)
+library(jsonlite)
+library(quanteda)
+library(quanteda.textplots)
+library(stm)
+library(seededlda)
+library(devtools)
+library(irr)
+library(caret)
+library(quanteda.textmodels)
+library(tidymodels)
+library(textrecipes)
+library(dplyr)
+library(textdata)
+library(tm)
+library(SnowballC)
+library(glmnet)
+```
+
+#2 Descriptive statistics about my data 
+```{r}
+setwd("~/Desktop/Allan")
+metadata <- read_csv("fake_news_and_hard_content_website_newsletters_deduplicate.csv")
+metadata_fake <- read_csv("fake_news_and_hard_content_website_newsletters_deduplicate.csv") %>% filter (sender_domain_type == "fake news")
+metadata_hard <- read_csv("fake_news_and_hard_content_website_newsletters_deduplicate.csv") %>% filter (sender_domain_type == "hard content")
+
+# Count the unique sources
+unique_domain_fake <- n_distinct(metadata_fake$sender_domain)
+unique_domain_hard <- n_distinct(metadata_hard$sender_domain)
+
+# domain table for fake
+table.fake <- metadata_fake %>%count(sender_domain, sender_domain_type) 
+table.fake
+# write_csv(table.fake, "table.fake.csv")
+
+# domain table for hard
+table.hard <- metadata_hard %>%count(sender_domain, sender_domain_type) 
+table.hard
+# write_csv(table.hard, "table.hard.csv")
+
+# Plot the overall contribution by category
+category_distribution <- metadata %>%
+  group_by(sender_domain_type) %>%
+  summarise(Count = n())
+
+ggplot(category_distribution, aes(x = sender_domain_type, y = Count, fill = sender_domain_type)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Documents Types",
+       y = "Number of Emails") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal()
+###
+
+#Take the text column of the metadata (fake) and slice the column based on data
+words_fake <- tokenize_words(metadata_fake$body_text)
+length(words_fake[[1]])
+
+#Add new column and get the length of body text for each column
+metadata_fake$n_words <- NA
+for(i in 1:nrow(metadata_fake)){
+  metadata_fake$n_words[i] <- length(words_fake[[i]])
+}
+```
+
+#3a Preprocessing
+```{r}
+###ALL
+#Take the text column of the metadata and slice the column based on data
+words <- tokenize_words(metadata$body_text)
+length(words[[1]])
+
+#Add new column and get the length of body text for each column
+metadata$n_words <- NA
+for(i in 1:nrow(metadata)){
+  metadata$n_words[i] <- length(words[[i]])
+}
+
+#Use Quanteda to create a corpus of the body text of misleading emails
+corpus_sotu <- corpus(metadata, text_field = "body_text")
+corpus_sotu
+
+#Pre-processing (removed punctuation, numbers, wordstem, and stopwords)
+toks <- tokens(corpus_sotu, remove_punct = TRUE, remove_numbers=TRUE)
+toks <- tokens_wordstem(toks)
+toks <- tokens_select(toks,  stopwords("en"), selection = "remove")
+dfm <- dfm(toks)
+dfm
+
+#trim dfm, only keep words that are more than 0.2 of the documents, at least 20% of the documents
+dfm_trimmed <- dfm_trim(dfm, min_docfreq = 0.2,docfreq_type = "prop")
+dfm_trimmed
+
+###FAKE
+#Take the text column of the metadata (fake) and slice the column based on data
+words_fake <- tokenize_words(metadata_fake$body_text)
+length(words_fake[[1]])
+
+#Add new column and get the length of body text for each column
+metadata_fake$n_words <- NA
+for(i in 1:nrow(metadata_fake)){
+  metadata_fake$n_words[i] <- length(words_fake[[i]])
+}
+
+#Use Quanteda to create a corpus of just the subject of misleading emails
+corpus_sotu_fake <- corpus(metadata_fake, text_field = "subject")
+corpus_sotu_fake
+
+#Pre-processing (removed punctuation, numbers, wordstem, and stopwords)
+toks_fake <- tokens(corpus_sotu_fake, remove_punct = TRUE, remove_numbers=TRUE)
+toks_fake <- tokens_wordstem(toks_fake)
+toks_fake <- tokens_select(toks_fake,  stopwords("en"), selection = "remove")
+dfm_fake <- dfm(toks_fake)
+dfm_fake
+
+#trim dfm
+dfm_trimmed_fake <- dfm_trim(dfm_fake, docfreq_type = "prop")
+dfm_trimmed_fake
+
+#Pre-processed representation in a word cloud
+textplot_wordcloud(dfm_trimmed_fake, col="blue")
+
+###HARD
+#Take the text column of the metadata (hard) and slice the column based on data
+words_hard <- tokenize_words(metadata_hard$body_text)
+length(words_hard[[1]])
+
+#Add new column and get the length of body text for each column
+metadata_hard$n_words <- NA
+for(i in 1:nrow(metadata_hard)){
+  metadata_hard$n_words[i] <- length(words_hard[[i]])
+}
+
+#Use Quanteda to create a corpus of just the subject of misleading emails
+corpus_sotu_hard <- corpus(metadata_hard, text_field = "subject")
+corpus_sotu_hard
+
+#Pre-processing (removed punctuation, numbers, wordstem, and stopwords)
+toks_hard <- tokens(corpus_sotu_hard, remove_punct = TRUE, remove_numbers=TRUE)
+toks_hard <- tokens_wordstem(toks_hard)
+toks_hard <- tokens_select(toks_hard,  stopwords("en"), selection = "remove")
+dfm_hard <- dfm(toks_hard)
+dfm_hard
+
+#trim dfm
+dfm_trimmed_hard <- dfm_trim(dfm_hard, docfreq_type = "prop")
+dfm_trimmed_hard
+
+#Pre-processed representation in a word cloud
+textplot_wordcloud(dfm_trimmed_hard, col="black")
+
+```
+
+#3b Discriminatory words
+```{r}
+## Discriminating Words
+#Which words distinguish fake news and hard content
+#Mutual Information function
+mi <- function(dfm, clust.vect){
+  np <- sum(clust.vect)
+  ns <- sum(!clust.vect)
+  D = np + ns
+  nj <- apply(dfm,2,function (x) sum(x>0))
+  nnotj <- apply(dfm,2,function (x) sum(x==0))
+  njp <- apply(dfm[clust.vect,], 2, function (x) sum(x>0))
+  njs <- apply(dfm[!clust.vect,], 2, function (x) sum(x>0))
+  nnotjp <- apply(dfm[clust.vect,], 2, function (x) sum(x==0))
+  nnotjs <- apply(dfm[!clust.vect,], 2, function (x) sum(x==0))
+  mi <- njp/D*log((njp*D)/(np*nj),2)+ njs/D*log((njs*D)/(nj*ns),2) +
+    nnotjp/D*log((nnotjp*D)/(np*nnotj),2) +
+    nnotjs/D*log((nnotjs*D)/(nnotj*ns),2) 
+  names(mi) <- colnames(dfm)
+  return(mi)
+}
+
+#calculate mutual information
+mi_fake <- mi(dfm_trimmed, metadata$sender_domain_type=="fake news")
+
+#Calculate difference in proportion for x-axis
+#np: Total number of fake news documents
+np <- sum(metadata$sender_domain_type=="fake news")
+#ns: Total number of hard content documents
+ns <- sum(metadata$sender_domain_type=="hard content")
+#Number of fake news documents that contain word j
+njp <- apply(dfm_trimmed[metadata$sender_domain_type=="fake news",], 2, function (x) sum(x>0))
+#Number of hard content documents that contain word j
+njs <- apply(dfm_trimmed[metadata$sender_domain_type=="hard content",], 2, function (x) sum(x>0))
+
+#Plot mutual information
+plot(njp/np-njs/ns, mi_fake, col="white", 
+     ylab="Mutual Information",
+     xlab="hard content <--> fake news", main="",
+     cex.axis=1.2, cex.lab=1.5)
+text(njp/np-njs/ns, mi_fake, names(mi_fake), cex=mi_fake/max(mi_fake, na.rm=T)+.3)
+
+#Visualize pattern
+fakewords <- sort(mi_fake[njp/np-njs/ns>0], decreasing=T)[1:30]
+hardwords <- sort(mi_fake[njp/np-njs/ns<0], decreasing=T)[1:30]
+fakewords
+hardwords
+```
+
+#3c.1 Topic Models-Fake 
+```{r}
+#Process the data to put it in STM format.  Textprocessor automatically does preprocessing
+temp_fake<-textProcessor(documents=metadata_fake$body_text,metadata=metadata_fake)
+
+#prepDocuments removes words/docs that are now empty after preprocessing
+out_fake <- prepDocuments(temp_fake$documents, temp_fake$vocab, temp_fake$meta)
+
+# K =9
+# model.stm_fake <- stm(out_fake$documents, out_fake$vocab, K = 30,data = out_fake$meta) 
+# model.stm_fake <- stm(out_fake$documents, out_fake$vocab, K = 20,data = out_fake$meta) 
+# model.stm_fake <- stm(out_fake$documents, out_fake$vocab, K = 10,data = out_fake$meta) 
+model.stm_fake <- stm(out_fake$documents, out_fake$vocab, K = 9,data = out_fake$meta) 
+
+# Print top words in each topic 
+labelTopics(model.stm_fake)
+```
+
+#3c.2 Topic Models-Fake (Labels)
+```{r}
+# Most probable words in each topic
+labels_fake <- c("die", "read", "health", "imag", "email", "donat", "news", "organ", "post")
+
+# Assign most probable words in each topic
+for (i in 1:length(labels_fake)) {
+   cat(paste("Topic", i, "Labels:", labels_fake[i], "\n"))
+}
+
+# representative documents in each topic
+# for (i in 1:10) {
+#     documents_fake<- findThoughts(model.stm_fake, texts = out_fake$meta$body_text, topics = i)
+#    print(documents_fake$docs)
+# }
+```
+
+#3c.3 Topic Models-Hard 
+```{r}
+#Process the data to put it in STM format.  Textprocessor automatically does preprocessing
+temp_hard<-textProcessor(documents=metadata_hard$body_text,metadata=metadata_hard)
+
+#prepDocuments removes words/docs that are now empty after preprocessing
+out_hard <- prepDocuments(temp_hard$documents, temp_hard$vocab, temp_hard$meta)
+
+# K =9
+# model.stm_hard <- stm(out_hard$documents, out_hard$vocab, K = 30, data = out_hard$meta) 
+# model.stm_hard <- stm(out_hard$documents, out_hard$vocab, K = 20, data = out_hard$meta) 
+# model.stm_hard <- stm(out_hard$documents, out_hard$vocab, K = 10, data = out_hard$meta) 
+model.stm_hard <- stm(out_hard$documents, out_hard$vocab, K = 4, data = out_hard$meta) 
+
+# Print top words in each topic 
+labelTopics(model.stm_hard)
+```
+
+#3c.4 Topic Models-Hard (Labels)
+```{r}
+# Most probable words in each topic
+labels_hard <- c("israel", "news", "polic", "say")
+
+# Assign most probable words in each topic
+for (i in 1:length(labels_hard)) {
+   cat(paste("Topic", i, "Labels:", labels_hard[i], "\n"))
+}
+
+# representative documents in each topic
+# for (i in 1:10) {
+#     documents_hard<- findThoughts(model.stm_hard, texts = out_hard$meta$body_text, topics = i)
+#    print(documents_hard$docs)
+# }
+```
+
+#4a Classification - Lasso and Ridge Regression 
+```{r}
+# Set seed
+set.seed(9)
+
+# Randomize 200 fake documents for handcoding
+training_set <- metadata_fake[sample(nrow(metadata_fake), 200), ]
+training_set
+
+#Use Quanteda to create a corpus of the body text of the training set
+corpus_training <- corpus(training_set, text_field = "subject")
+corpus_training
+
+# Convert the training set into a csv file for hand coding
+df_training <- data.frame(
+subject = as.character(corpus_training)
+)
+
+# write_csv(df_training, "corpus_fake_training_AllanLam.csv")
+
+training_set <- read_csv("corpus_fake_training_AllanLam.csv") 
+
+corpus_training <- corpus(training_set, text_field = "subject")
+corpus_training
+
+#Training
+toks_t <- tokens(corpus_training)
+dfm_t <- dfm(toks_t)
+
+#Pre-processing (removed punctuation, numbers, wordstem, and stopwords)
+toks_t <- tokens(corpus_training, remove_punct = TRUE, remove_numbers=TRUE)
+toks_t <- tokens_wordstem(toks_t)
+toks_t <- tokens_select(toks_t,  stopwords("en"), selection = "remove")
+dfm_t <- dfm(toks_t)
+dfm_t
+
+#trim dfm, deleted the lower bound as ended up with very little words
+dfm_trimmed <- dfm_trim(dfm_t, docfreq_type = "prop")
+dfm_trimmed
+
+#Split into training and validation
+set.seed(99)
+docvars(corpus_training, "id_numeric") <- 1:ndoc(corpus_training)
+alldocs <- 1:ndoc(corpus_training)
+training <- sample(alldocs, round(length(alldocs)*.75))
+validation <- alldocs[!alldocs%in%training]
+
+#Create separate dfm's for each
+dfmat_train <- dfm_subset(dfm_t, docvars(corpus_training, "id_numeric") %in% training)
+dfmat_val <- dfm_subset(dfm_t, docvars(corpus_training, "id_numeric") %in% validation)
+
+#Lasso 
+lasso.1 <- glmnet(dfmat_train, docvars(dfmat_train, "Hard"),
+                  family="binomial", alpha=1)
+#These are all of the different lambdas glmnet used
+lasso.1$lambda
+#These lambdas produce different betas:
+summary(lasso.1$beta[,1])
+summary(lasso.1$beta[,40])
+sort(lasso.1$beta[,40], decreasing=T)[1:40]
+sort(lasso.1$beta[,40], decreasing=F)[1:40]
+
+#Let's look at it's performance out of sample
+predict.test <- predict(lasso.1, dfmat_val, type="class")
+conf_matrix40 <- confusionMatrix(factor(predict.test[,40]), 
+                                 factor(docvars(dfmat_val, "Hard")),
+                                 mode="prec_recall", positive="1")
+print(conf_matrix40)
+conf_matrix50 <- confusionMatrix(factor(predict.test[,50]), 
+                                 factor(docvars(dfmat_val, "Hard")),
+                                 mode="prec_recall", positive="1")
+print(conf_matrix50)
+```
+
+#4b Classification - Naive Bayes
+```{r}
+#Naive Bayes
+#Train
+tmod_nb <- textmodel_nb(dfmat_train, docvars(dfmat_train, "Hard"))
+summary(tmod_nb)
+
+#Probability of a word given a category
+coef_nb <- coef(tmod_nb)
+head(coef_nb)
+
+#Words associated with Hard:
+sort(coef_nb[,2]/coef_nb[,1], decreasing=T)[1:20]
+#Words not associated with Hard
+sort(coef_nb[,2]/coef_nb[,1], decreasing=F)[1:20]
+
+#How well does it do in sample?
+predict.train <- predict(tmod_nb, dfmat_train)
+
+tab_train <- table(docvars(dfmat_train, "Hard"), predict.train)
+tab_train
+
+#precision
+diag(tab_train)/colSums(tab_train)
+#recall
+diag(tab_train)/rowSums(tab_train)
+
+#How well does this prediction do out of sample?  Validation
+predict.val <- predict(tmod_nb, newdata = dfmat_val)
+
+tab_val <- table(docvars(dfmat_val, "Hard"), predict.val)
+tab_val
+
+#precision
+diag(tab_val)/colSums(tab_val)
+#recall
+diag(tab_val)/rowSums(tab_val)
+
+#Use confusion matrix to calculate F1
+conf_matrix <- confusionMatrix(factor(predict.val), 
+                               factor(docvars(dfmat_val, "Hard")),
+                               mode="prec_recall", positive="1")
+print(conf_matrix)
+```
+
+#4c Classification - Label untrained data
+```{r}
+# Match the features of the test data to the training data
+metadata_aligned <- dfm_match(dfm_fake, features = featnames(dfmat_train))
+
+# Train the Naive Bayes model
+nb_model <- textmodel_nb(dfmat_train, docvars(dfmat_train, "Hard"))
+
+# Predict categories for unlabeled data using the trained Naive Bayes model
+predictions_unlabeled <- predict(nb_model, newdata = metadata_aligned)
+
+# Summarize predictions
+category_counts <- table(predictions_unlabeled)
+category_proportions <- prop.table(category_counts)
+
+# Print results
+cat("Category Counts:\n")
+print(category_counts)
+cat("\nCategory Proportions:\n")
+print(category_proportions)
+
+# Match the features of the test data to the training data
+metadata_aligned_hard <- dfm_match(dfm_hard, features = featnames(dfmat_train))
+
+# Train the Naive Bayes model
+nb_model_hard <- textmodel_nb(dfmat_train, docvars(dfmat_train, "Hard"))
+
+# Predict categories for unlabeled data using the trained Naive Bayes model
+predictions_unlabeled_hard <- predict(nb_model_hard, newdata = metadata_aligned_hard)
+
+# Summarize predictions
+category_counts_hard <- table(predictions_unlabeled_hard)
+category_proportions_hard <- prop.table(category_counts_hard)
+
+# Print results
+cat("Category Counts:\n")
+print(category_counts_hard)
+cat("\nCategory Proportions:\n")
+print(category_proportions_hard)
+```
+```
+
