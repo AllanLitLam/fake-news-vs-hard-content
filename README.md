@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-This project investigates whether fake news strategically leans into soft, sensational topics—contrary to the common assumption that it is mostly political. Using quantitative text analysis in R, I compare fake news and factual news content to identify word patterns, topic clusters, and framing differences.
+This project investigates whether fake news strategically leans into soft sensational topics, which is contrary to the common assumption that it is mostly political. Using quantitative text analysis in R, I compared fake news and factual news content to identify word patterns, topic clusters, and framing differences.
 
 ### Research Questions
 
@@ -41,7 +41,7 @@ Written Report:
 Documents were trimmed to terms appearing in ≥20% of texts. This reduced noise and surfaced common language patterns.
 
 **Findings:**
-- **Fake news** often used words like _“health,” “product,” “store”_, suggesting a focus on soft or sensational themes.
+- **Fake news** used words like _“health,” “product,” “store”_, suggesting a focus on soft or sensational themes.
 - **Hard content** featured terms like _“address,” “book,” “safe”_, indicating newsletter formatting or administrative tone.
 - Some overlap (e.g., _“state,” “world”_) points to blurred boundaries between types.
 
@@ -55,7 +55,7 @@ K-means clustering on STM-prepped documents uncovered latent content themes. Aft
 **Findings:**
 - **Fake news** covered more diverse topics: health, politics (e.g., _“Trump,” “Biden”_), and ambiguous/structural language.
 - **Hard content** focused on narrow themes like international or regional news and law enforcement.
-- This supports the idea that fake news varies topics to capture attention, aiding its spread.
+- This supports the idea that fake news varies in topics to capture attention, aiding its spread.
 
 ### 3. Manual Coding & Supervised Classification
 
@@ -72,4 +72,4 @@ I hand-coded 200 fake news documents for “hard content” framing. Then, I tra
 
 **Limitations:**
 - Training data came only from fake news samples, which may bias results.
-- A balanced training set or use of LLMs could improve generalization but were outside the scope.
+- A balanced training set or use of LLMs could improve generalization, but was outside the scope.
