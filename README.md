@@ -49,6 +49,14 @@ Documents were trimmed to terms appearing in ≥20% of texts. This reduced noise
   <img src="./Plots/Bar-plot-Number-of-Emails-by-Document-Types.png" alt="Number of Emails by Document Types" width="600"/>
   <br>
   <em>Figure 1: Number of emails by document types</em>
+<p align="center">
+  <img src="./Plots/Word-Cloud-for-the-fake-news-corpus.png" alt="Word Cloud Representation for The Fake News Corpus" width="600"/>
+  <br>
+  <em>Figure 2: Word cloud representation for the fake news corpus</em>
+<p align="center">
+  <img src="./Plots/Word-Cloud-for-the-hard-content-corpus.png" alt="Word Cloud Representation for The Hard Content Corpus" width="600"/>
+  <br>
+  <em>Figure 3: Word cloud representation for the hard content corpus</em>
 </p>
 
 
@@ -63,6 +71,12 @@ K-means clustering on STM-prepped documents uncovered latent content themes. Aft
 - **Fake news** covered more diverse topics: health, politics (e.g., _“Trump,” “Biden”_), and ambiguous/structural language.
 - **Hard content** focused on narrow themes like international or regional news and law enforcement.
 - This supports the idea that fake news varies in topics to capture attention, aiding its spread.
+
+<p align="center">
+  <img src="./Plots/Discriminatory-Words-across-Document-Types.png" alt="Discriminatory Words Across Document Types" width="600"/>
+  <br>
+  <em>Figure 4: Discriminatory words across document types</em>
+</p>
 
 ### 3. Manual Coding & Supervised Classification
 
