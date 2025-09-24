@@ -45,6 +45,13 @@ Documents were trimmed to terms appearing in ≥20% of texts. This reduced noise
 - **Hard content** featured terms like _“address,” “book,” “safe”_, indicating newsletter formatting or administrative tone.
 - Some overlap (e.g., _“state,” “world”_) points to blurred boundaries between types.
 
+<p align="center">
+  <img src="./Plots/Bar-plot-Number-of-Emails-by-Document-Types.png" alt="Number of Emails by Document Types" width="600"/>
+  <br>
+  <em>Figure 1: Number of emails by document types</em>
+</p>
+
+
 ### 2. Topic Clustering
 
 K-means clustering on STM-prepped documents uncovered latent content themes. After tuning, I finalized:
@@ -65,6 +72,13 @@ I hand-coded 200 fake news documents for “hard content” framing. Then, I tra
 - Applied to the full datasets:
   - **43.89%** of fake news predicted as hard content
   - **63.58%** of hard content predicted as hard content
+
+| Validation  | Lasso  | Naïve Bayes  |
+|-------------|--------|--------------|
+| Accuracy    | 0.74   | 0.78         |
+| Precision   | 0.78   | 0.71         |
+| Recall      | 0.39   | 0.67         |
+| F-score     | 0.52   | 0.69         |
 
 **Implications:**
 - Fake news occasionally features hard content but leans toward softer topics.
