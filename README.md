@@ -28,6 +28,8 @@ No domain appears in both groups. Documents were processed into Document-Feature
 
 This clean division supports a valid comparison. However, findings are based on email newsletters and may not generalize to full articles or social media posts.
 
+**This data is not available to the public. Please refer to the R codes to view analysis methods.** 
+
 Analysis Scripts:
 - [POLI274_Final_Project.Rmd](./POLI274_Final_Project.Rmd)
 
