@@ -63,7 +63,7 @@ category_distribution <- metadata %>%
 
 ggplot(category_distribution, aes(x = sender_domain_type, y = Count, fill = sender_domain_type)) +
   geom_bar(stat = "identity") +
-  labs(x = "Documents Types",
+  labs(x = "Document Types",
        y = "Number of Emails") +
   scale_fill_brewer(palette = "Set1") +
   theme_minimal()
