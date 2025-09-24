@@ -28,10 +28,10 @@ No domain appears in both groups. Documents were processed into Document-Feature
 
 This clean division supports a valid comparison. However, findings are based on email newsletters and may not generalize to full articles or social media posts.
 
-## Methods & Key Findings
-
 Analysis Scripts:
 - [POLI274_Final_Project.Rmd](./POLI274_Final_Project.Rmd)
+
+## Methods & Key Findings
 
 Written Report:
 - [POLI274_Final_Project_Allan_Lam.pdf](./POLI274_Final_Project_Allan_Lam.pdf)
