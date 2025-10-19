@@ -7,6 +7,8 @@ Past research suggests that fake news is predominantly a **political weapon** fo
 
 My analysis used **Topic Modeling (K-means clustering)**, **Discriminatory Word Analysis**, and **Classification Model Predictive Analysis** on a corpus of 14,543 newsletter emails categorized as either misinformation ("fake news") or hard content.
 
+This is the final project for POLI 274: Text As Data
+
 ---
 
 ## Key Data-Driven Insights
