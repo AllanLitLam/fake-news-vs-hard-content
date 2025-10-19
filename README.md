@@ -23,6 +23,13 @@ The text-as-data analysis provided three key findings that contradict the politi
 - **Finding**: Fake news documents exhibited a greater thematic diversity (nine topics identified, ranging from political to health/product-related).
 - **Implication**: Hard content showed a narrower scope (four topics identified), concentrating on traditional areas like international news and regional law enforcement. Fake news uses a **diverse content mix** to cast a wider net for reader attention.
 
+<p align="center">
+  <img src="./Plots/Discriminatory-Words-across-Document-Type.png" alt="Discriminatory Words across Document Type" width="600"/>
+  <br>
+  <em>Figure: Discriminatory Words across Document Type</em>
+</p>
+
+
 3. Hard Content Proportion
 - **Finding**: A classification model (Naïve Bayes, F-score 0.69) predicted that only **43.89%** of fake news documents were classified as "hard content."
 - **Implication**: This result directly challenges the notion that fake news predominantly features hard content. The majority of the content focused on non-political or soft news topics, suggesting that **dissemination/reach** is a more important goal than purely political motivation.
