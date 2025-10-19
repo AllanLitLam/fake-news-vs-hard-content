@@ -24,7 +24,7 @@ The text-as-data analysis provided three key findings that contradict the politi
 - **Implication**: Hard content showed a narrower scope (four topics identified), concentrating on traditional areas like international news and regional law enforcement. Fake news uses a **diverse content mix** to cast a wider net for reader attention.
 
 <p align="center">
-  <img src="./Plots/Discriminatory-Words-across-Document-Type.png" alt="Discriminatory Words across Document Type" width="600"/>
+  <img src="./Plots/Discriminatory-Words-across-Document-Types.png" alt="Discriminatory Words across Document Types" width="600"/>
   <br>
   <em>Figure: Discriminatory Words across Document Type</em>
 </p>
