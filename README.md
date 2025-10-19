@@ -33,13 +33,14 @@ The text-as-data analysis provided three key findings that contradict the politi
 3. Hard Content Proportion
 - **Finding**: A classification model (Naïve Bayes, F-score 0.69) predicted that only **43.89%** of fake news documents were classified as "hard content."
 - **Implication**: This result directly challenges the notion that fake news predominantly features hard content. The majority of the content focused on non-political or soft news topics, suggesting that **dissemination/reach** is a more important goal than purely political motivation.
-
+  
 | Validation | Lasso | Naïve Bayes |
 | :--- | :--- | :--- |
 | Accuracy | 0.74 | 0.78 |
 | Precision | 0.78 | 0.71 |
 | Recall | 0.39 | 0.67 |
 | F-score | 0.52 | 0.69 |
+
 ---
 
 ## Actionable Recommendation
